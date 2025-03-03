@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gematria Calculator</title>
+</head>
+<body>
+  <h1>Gematria Calculator</h1>
+  <div id="options">
+    <input type="radio" id="normal" name="option" value="normal" checked>
+    <label for="normal">Calculate Gematria as normal</label>
+    <br>
+    <input type="radio" id="numbers-raw" name="option" value="numbers-raw">
+    <label for="numbers-raw">Count Numbers Raw</label>
+    <br>
+    <input type="radio" id="numbers-simplified" name="option" value="numbers-simplified">
+    <label for="numbers-simplified">Count Numbers Simplified</label>
+    <br>
+    <input type="radio" id="symbols-raw" name="option" value="symbols-raw">
+    <label for="symbols-raw">Count Symbols Raw</label>
+    <br>
+    <input type="radio" id="symbols-simplified" name="option" value="symbols-simplified">
+    <label for="symbols-simplified">Count Symbols Simplified</label>
+  </div>
+  <input type="text" id="input" placeholder="Enter a word or phrase">
+  <button onclick="calculateGematria()">Calculate</button>
+  <p id="result"></p>
+  Results:
+  <p id="calculation-steps"></p>
+
+  <script>
+    document.getElementById("input").addEventListener("keypress", function(event) {
+      console.log("Keypress event listener called");
+      if (event.key === "Enter") {
+        calculateGematria();
+      }
+    });
+
+    function calculateGematria() {
+      const input = document.getElementById("input").value;
+      const option = document.querySelector('input[name="option"]:checked').value;
+      const validation = validateInput(input);
+
+      if (validation.warning) {
+        alert(validation.message);
+      }
+
+      if (!validation.valid) {
+        return;
+      }
+
+      let gematriaValue;
+      switch (option) {
+        case "normal":
+          console.log("Normal option selected");
+          gematriaValue = calculateGematriaValue(input);
+          break;
+        case "numbers-raw":
+          gematriaValue = calculateNumbersRaw(input);
+          break;
+        case "numbers-simplified":
+          gematriaValue = calculateNumbersSimplified(input);
+          break;
+        case "symbols-raw":
+          gematriaValue = calculateSymbolsRaw(input);
+          break;
+        case "symbols-simplified":
+          gematriaValue = calculateSymbolsSimplified(input);
+          break;
+        default:
+          console.error("Invalid option selected");
+          return;
+      }
+
+      const result = `Gematria Value: ${gematriaValue}`;
+      const calculationSteps = getCalculationSteps(input, option);
+      document.getElementById("calculation-steps").innerHTML = calculationSteps;
+
+      if (validation.profane) {
+        result += " (Contains profane language)";
+      }
+
+      document.getElementById("result").innerHTML = result;
+    }
+
+    function calculateNumbersRaw(input) {
+      let sum = calculateGematriaValue(input);
+      for (let i = 0; i < input.length; i++) {
+        if (!isNaN(input[i])) {
+          sum += parseInt(input[i]);
+        }
+      }
+      return sum;
+    }
+
+    function calculateNumbersSimplified(input) {
+      let sum = calculateGematriaValue(input);
+      for (let i = 0; i < input.length; i++) {
+        if (!isNaN(input[i])) {
+          sum += parseInt(input[i]) % 9 || 9;
+        }
+      }
+      return sum;
+    }
+
+    function calculateSymbolsRaw(input) {
+      let sum = calculateGematriaValue(input);
+      for (let i = 0; i < input.length; i++) {
+        if (input[i].match(/[^a-zA-Z0-9]/)) {
+          sum += input[i].charCodeAt(0);
+        }
+      }
+      return sum;
+    }
+
+    function calculateSymbolsSimplified(input) {
+      let sum = calculateGematriaValue(input);
+      for (let i = 0; i < input.length; i++) {
+        if (input[i].match(/[^a-zA-Z0-9]/)) {
+          sum += (input[i].charCodeAt(0) - 1) % 9 + 1;
+        }
+      }
+      return sum;
+    }
+
+    function getCalculationSteps(input, option) {
+      console.log("getCalculationSteps function called");
+      let steps = "";
+      for (let i = 0; i < input.length; i++) {
+        const charCode = input.toUpperCase().charCodeAt(i);
+        if (charCode >= 65 && charCode <= 90) { // A-Z
+          steps += `${input[i]} = ${charCode - 64}\n`;
+        } else if (option === "numbers-raw" && !isNaN(input[i])) {
+          steps += `${input[i]} = ${input[i]}\n`;
+        } else if (option === "symbols-raw" && input[i].match(/[^a-zA-Z0-9]/)) {
+          steps += `${input[i]} = ${input[i].charCodeAt(0)}\n`;
+        } else {
+          steps += `${input[i]} = 0\n`;
+        }
+      }
+      return steps;
+    }
+
+    function validateInput(input) {
+      console.log("validateInput function called");
+      const bannedTerms = ["mockBannedTerm1", "mockBannedTerm2"];
+      const profaneLanguage = ["mockProfaneWord1", "mockProfaneWord2"];
+
+      if (input.length > 255) {
+        return { valid: true, warning: true, message: "Warning: Large input strings can consume significant computing resources. Please be patient." };
+      }
+
+      if (bannedTerms.some(term => input.includes(term))) {
+        return { valid: false, message: "Input contains banned terms." };
+      }
+
+      if (profaneLanguage.some(word => input.includes(word))) {
+        return { valid: true, profane: true, message: "" };
+      }
+
+      return { valid: true, message: "" };
+    }
+
+    function calculateGematriaValue(input) {
+      console.log("calculateGematriaValue function called");
+      let sum = 0;
+      for (let i = 0; i < input.length; i++) {
+        const charCode = input.toUpperCase().charCodeAt(i);
+        if (charCode >= 65 && charCode <= 90) { // A-Z
+          sum += charCode - 64; // A=1, B=2, ..., Z=26
+        }
+      }
+      return sum;
+    }
+  </script>
+</body>
+</html>
